@@ -31,4 +31,38 @@ Spring Bean基础
         MutablePropertyValues propertyValues = new MutablePropertyValues();
         propertyValues.addPropertyValue("name", "value"); 或者propertyValues.add("name", "value").add()......
         genericBeanDefinition.setPropertyValues(propertyValues);
+3、命名Spring Bean
+  Bean的名称：每个Bean拥有一个或多个标识符，这些标识符在Bean所在的容器必须是唯一的。通常，一个Bean仅有一个标识符，如果需要额外的，可考虑使用别名来扩充。
+  在基于XML的配置元信息中，开发人员可用id或者name属性来规定Bean的标识符。通常Bean的标识符由字母组成，允许出现特殊字符。如果想要引入Bean的别名的话，
+  可在name属性使用半角逗号或分号来间隔。Bean的id或name属性并非必须制定，如果留空的话，容器会为Bean自动生成一个唯一的名称。Bean的命名尽管没有限制，不过官方建议采用驼峰的方式。
   
+  Bean名称生成器(BeanNameGenerator):Spring FrameWork 2.0.3引入，框架内建两种实现
+    DefaultBeanNameGenerator: 默认通用BeanNameGenerator实现
+    AnnoationBeanNameGenerator: 基于注解扫描的BeanNameGenerator实现
+    
+4、Spring Bean的别名
+  Bean别名的价值：复用现有的BeanDefinition，更具有场景化的命名方法
+    
+5、注册Spring Bean
+  BeanDefinition注册
+    XML配置元信息: <bean name="......"/>
+    Java注解配置元信息: @Bean @Component @Import 
+    Java API配置元信息: 
+      命名方式: BeanDefinitionRegistry#registerBeanDefinition(String, BeanDefinition)
+      非命名方式: BeanDefinitionReaderUtils#registerWithGeneratedName(AbstractBeanDefinition, BeanDefinitionRegistry)
+      配置类方式: AnnotatedBeanDefinitionReader#register(Class...)
+      
+      在Spring容器中，Bean不会重复注册
+    
+6、实例化Spring Bean
+  Bean实例化
+    常规方式: 
+      通过构造器(配置元信息: XML、Java注解和Java API)
+      通过静态工厂方法(配置元信息: XML和Java API)
+      通过Bean工厂方法(配置元信息: XML和Java API)
+      通过FactoryBean(配置元信息: XML、Java注解和Java API)
+    特殊方式
+      通过ServiceLoaderFactoryBean(配置元信息: XML、Java注解和Java API)
+      通过AutowrieCapableBeanFactory#createBean(java.lang.class, int, boolean)
+      通过BeanDefinitionRegistry#registerBeanDefinition(String, BeanDefinition)
+      
