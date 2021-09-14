@@ -1,3 +1,162 @@
+Spring
+
+数据访问
+  JDBC
+
+  O/R Mapping
+
+  NoSQL
+
+Spring MVC
+
+Web开发
+
+Spring Boot
+1、概览
+更快更好地构建应用程序
+
+特性：
+方便地创建可独立运行的Spring应用程序
+直接内嵌Tomcat、Jetty或Undertow(JAR包)
+简化了项目的构建配置
+为Spring及第三方库提供自动配置
+提供生产级特性
+无需生成代码或进行XML配置
+
+Spring Boot的四大核心
+自动配置 - Auto Configuration
+起步依赖 - Starter Dependency
+命令行界面 - Spring Boot CLI
+Actuator
+
+2、自动配置
+基于添加的JAR依赖自动对Spring Boot应用程序进行配置 --> spring-boot-autoconfiguration
+开启自动配置：
+  @EnableAutoConfiguration (exclude=Class<?>[])
+  @SpringBootApplication
+自动配置的实现原理@EnableAutoConfiguration
+  AutoConfigurationImportSelector会加载
+  META-INF/spring.factories:org.springframework.boot.autoConfigure.EnableAutoConfiguration
+  
+  通过条件注解实现自动配置：
+    @Conditional
+    类注解：
+      @ConditionalOnClass
+      @ConditionalOnMissingClass
+    Bean条件：
+      @ConditionalOnBean
+      @ConditionalOnMissingBean
+      @ConditionalOnSingleCandidate
+    属性条件：
+      @ConditionalOnProperty
+    资源条件：
+      @ConditionalOnResource
+    Web应用条件：
+      @ConditionalOnWebApplication
+      @ConditionalOnNotApplication
+    其他条件：
+      @ConditionalOnExpression
+      @ConditionalOnJava
+      @ConditionalOnJndi
+    ......
+    自动配置的执行顺序：
+      @AutoConfigureBefore
+      @AutoConfigureAfter
+      @AutoConfigureOrder
+    
+  了解自动配置的判断结果 --debug
+    ConditionEvaluationReportLoggingListener
+      Positive matches
+      Negative matches
+      Exclusions
+      Unconditional classes
+      
+    实现自动配置：
+      编写Java Config：@Configuration
+      添加条件：@Conditional
+      定位自动配置：META-INF/spring.factories
+  
+  低版本实现自动配置
+    核心思路：
+      条件判断：通过BeanFactoryPostProcessor进行判断
+    配置加载：
+      编写Java Config类
+      引入配置类：
+        通过component-scan
+        通过XML文件import
+        
+  配置加载机制
+    外化配置加载顺序：
+      开启DevTools时，~/.spring-boot-devtools.properties
+      测试类上的@TestpropertySource注解
+      @SpringBootTest#properties属性
+      命令行参数(--server.port=9000)
+      SPRING_APPLICATION_JSON中的属性
+      ServletConfig初始化参数
+      ServletContext初始化参数
+      Java:comp/env中的JNDI属性
+      System.getProperties()  --> Java -D参数指定的系统属性
+      操作系统环境变量
+      random.*涉及到的RandomValuePropertySource
+      jar包外部的application-{profile}.properties或.yml
+      jar包内部的application-{profile}.properties或.yml
+      jar包外部的application.properties或.yml
+      jar包内部的application.properties或.yml
+      @Configuration类上的@PropertySource
+      SpringApplication.setDefaultProperties()设置的默认属性
+      
+   application.properties
+    默认位置：
+      ./config
+      ./
+      CLASSAATH中的/config
+      CLASSPATH中的/
+    修改名字或路径：
+      spring.config.name
+      spring.config.location
+      spring.config.additional-location
+      
+  PropertySource抽象
+  
+  Spring的两个扩展点：
+    BeanPostProcessor
+      针对Bean实例
+      在Bean创建后提供定制逻辑回调
+    BeanFactoryPostProcessor
+      针对Bean定义
+      在容器创建Bean前获取配置元数据
+      Java Config中需要定义为static方法
+      
+  关于Bean的一些定制
+    Lifecycle Callback
+      实现InitializingBean接口/使用注解@PostConstruct/xml配置init-method
+      实现DisposableBean接口/使用注解@PreDestroy/xml配置destroy-method
+    XxxAware接口
+      ApplicationContextAware
+      BeanFactoryAware
+      BeanNameAware
+      
+起步依赖 Starter Dependency
+  Starter Dependencies
+    直接面向功能，一站获得所有相关依赖，不再复制粘贴
+  官方的Starters
+    spring-boot-starter-*
+  定制自己的起步依赖
+    autoconfigure模块，包含自动配置代码
+    starter模块，包含指向自动配置模块的依赖以及其他相关依赖
+    
+    
+
+
+
+
+Actuator Endpoint
+
+
+
+
+
+
 Spring Bean基础
 1、定义Spring Bean
 什么是BeanDefinition？ --> BeanDefinition是Spring Framework中定义Bean的配置元信息接口，包含：
