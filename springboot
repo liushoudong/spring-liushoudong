@@ -3,9 +3,22 @@ Spring
 数据访问
   JDBC
     数据源配置
-      单
-      多
+      单数据源配置：
+        Spring Boot做了哪些配置：
+          DataSourceAutoConfiguration 配置DataSource
+          DataSourceTransactionManagerAutoConfiguration 配置DataSourceTransactionManager
+          JdbcTemplateAutoConfiguration 配置JdbcTemplate
+      多数据源配置：
+        不同数据源的配置要分开
+        关注每次使用的数据源：有多个DataSource时系统如何判断；对应的设施(事务、ORM等如何选择DataSource)
+        方式：
+          手工配置
+          与Spring Boot协同工作：
+            配置@Primary类型的Bean
+            排除Spring Boot的自动配置：DataSourceAutoConfiguration；DataSourceTransactionManagerAutoConfiguration；JdbcTemplateAutoConfiguration
     连接池
+      HikariCP
+      Alibaba Druid
     事务抽象
 
   O/R Mapping
