@@ -18,10 +18,66 @@ Spring
             排除Spring Boot的自动配置：DataSourceAutoConfiguration；DataSourceTransactionManagerAutoConfiguration；JdbcTemplateAutoConfiguration
     连接池
       HikariCP
+        
       Alibaba Druid
+        
+    通过Spring JDBC访问数据库
+      spring-jdbc
+        core，JdbcTemplate等相关核心接口和类
+        datasource，数据源相关的辅助类
+        object，将基本的JDBC操作封装成对象
+        support，错误码等其他辅助工具
+      通过注解定义Bean
+        @Component
+        @Respository
+        @Service
+        @Controller @RestController
+      Jdbc Template
+        query
+        queryForObject
+        queryForList
+        update
+        execute
+    
     事务抽象
+      Platform TransactionManager: DataSourceTransactionManager;HibernateTransactionManager;JtaTransactionManager
+      TransactionDefinition: Propagation;Isolation;Timeout;Read-only status
+      
+      事务传播特性
+      PROPAGATION_REQUIRED               0
+      PROPAGATION_SUPPORTS               1
+      PROPAGATION_MANMDATORY             2
+      PROPAGATION_REQUIRES_NEW           3
+      PROPAGATION_NOT_SUPPORTED          4
+      PROPAGATION_NEVER                  5
+      PROPAGATION_NESTED                 6
+    
+      隔离性
+      
+      编程式事务
+        TransactionTemplate:TransactionCallback, TransactionCallbackWithoutResult
+      声明式事务
+        基于注解的配置方式
+          开启事务注解的方式 @EnableTransactionManagement
+          一些配置
+            proxyTargetClass：基于接口的还是基于类的  有接口的话使用proxy，没有接口使用CGLIB
+            mode：是否使用ASPECTJ
+            order：优先级
+          @Transactional
+            transactionManager
+            propagation
+            isolation
+            timeout
+            readOnly
+            怎么判断回滚
+            
+          
+    JDBC异常抽象
 
   O/R Mapping
+    Spring Data JPA
+    
+    
 
   NoSQL
 
