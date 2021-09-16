@@ -309,3 +309,49 @@ Spring Bean基础
       XML配置: <bean init-method='init'.../>
       Java注解: @Bean(initMethod="init")
       Java API: AbstractBeanDefinition#setInitMethodName(String)
+    顺序abc
+    
+    非延迟初始化在Spring应用上下文启动前，被初始化
+    延迟初始化是在Spring应用上下文启动后依赖查找的时候触发
+    Bean延迟初始化
+      XML配置: <bean lazy-init="true">
+      
+      
+8、销毁Spring Bean
+  Bean销毁
+    @PreDestroy标注方法
+    
+    实现DisposableBean接口的destroy()方法
+    
+    自定义销毁方法
+      XML配置: <bean destroy="destroy".../>
+      Java注解: @Bean(destroy="destroy")
+      Java API: AbstractBeanDefinition#setDestroyMethodName(String)
+      
+Spring IOC依赖查找
+
+
+Spring IOC依赖注入
+  依赖注入的模式和类型
+  
+  自动绑定 AutoWiring
+  
+  Setter方法依赖注入
+  
+  构造器依赖注入
+  
+  字段注入
+  
+  方法注入
+  
+  接口回调注入
+  
+  依赖注入类型选择
+  
+  基础类型注入
+  
+  集合类型注入
+  
+  限定
+  
+  
