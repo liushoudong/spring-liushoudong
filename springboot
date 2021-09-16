@@ -250,14 +250,14 @@ Spring Bean基础
   Destruction method -- Bean销毁回调方法名称
   
   BeanDefinition构建
-    通过BeanDefinitionBuilder
+    a. 通过BeanDefinitionBuilder
       builder
         genericBeanDefinition
           通过BeanDefinitionBuilder构建: BeanDefinitionBuilder beanDefinitionBuilder = BeanDefinitionBuilder.genericBeanDefinition(xx.class)
           通过属性设置: beanDefinitionBuilder.addPropertyValue("name", "value").addPropertyValue()......;
           获取BeanDefinition实例: BeanDefinition beanDefinition = beanDefinitionBuilder.getBeanDefinition(); BeanDefinition并非Bean终态，可以自定义进行修改
         rootBeanDefinition
-    通过AbstractBeanDefinition以及派生类
+    b. 通过AbstractBeanDefinition以及派生类
       GenericBeanDefinition genericBeanDefinition = new GenericBeanDefinition();
       设置Bean类型 genericBeanDefinition.setBeanClass(xx.class);
       通过MutablePropertyValues批量操作属性: 
@@ -293,9 +293,19 @@ Spring Bean基础
       通过构造器(配置元信息: XML、Java注解和Java API)
       通过静态工厂方法(配置元信息: XML和Java API)
       通过Bean工厂方法(配置元信息: XML和Java API)
-      通过FactoryBean(配置元信息: XML、Java注解和Java API)
+      通过FactoryBean(配置元信息: XML、Java注解和Java API) 
     特殊方式
       通过ServiceLoaderFactoryBean(配置元信息: XML、Java注解和Java API)
       通过AutowrieCapableBeanFactory#createBean(java.lang.class, int, boolean)
       通过BeanDefinitionRegistry#registerBeanDefinition(String, BeanDefinition)
       
+7、初始化Srping Bean
+  Bean初始化
+    a. @PostConstruct标注方法
+      
+    b. 实现InitialzingBean接口的afterPropertiesSet()方法
+    
+    c. 自定义初始化方法
+      XML配置: <bean init-method='init'.../>
+      Java注解: @Bean(initMethod="init")
+      Java API: AbstractBeanDefinition#setInitMethodName(String)
