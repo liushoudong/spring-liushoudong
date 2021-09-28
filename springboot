@@ -1,7 +1,7 @@
 Spring
 
 数据访问
-  JDBC
+  1、JDBC
     数据源配置
       单数据源配置：
         Spring Boot做了哪些配置：
@@ -16,12 +16,12 @@ Spring
           与Spring Boot协同工作：
             配置@Primary类型的Bean
             排除Spring Boot的自动配置：DataSourceAutoConfiguration；DataSourceTransactionManagerAutoConfiguration；JdbcTemplateAutoConfiguration
-    连接池
+  2、连接池
       HikariCP
         
       Alibaba Druid
         
-    通过Spring JDBC访问数据库
+  3、通过Spring JDBC访问数据库
       spring-jdbc
         core，JdbcTemplate等相关核心接口和类
         datasource，数据源相关的辅助类
@@ -76,41 +76,62 @@ Spring
 
   O/R Mapping
     Spring Data JPA
-    
-    
+    定义JPA的实体对象
+    Repository是怎么从接口变成Bean的
+    通过Mybatis
 
   NoSQL
+    Spring访问MongoDB
+    Spring访问Redis
+    Spring缓存抽象
+    
 
 Spring MVC
-
+  
 Web开发
 
+服务注册与发现
+  consul
+    Consul is a distributed，highly available， and data center aware solution to connect and configure applications across dynamic, distributed infrastructure
+  关键特性
+    服务发现
+    健康检查
+    KV存储
+    多数据中心支持
+    安全的服务间通信
+
+服务熔断
+
+服务配置
+
+
+
 Spring Boot
-1、概览
-更快更好地构建应用程序
+  1、概览
+    更快更好地构建应用程序
 
-特性：
-方便地创建可独立运行的Spring应用程序
-直接内嵌Tomcat、Jetty或Undertow(JAR包)
-简化了项目的构建配置
-为Spring及第三方库提供自动配置
-提供生产级特性
-无需生成代码或进行XML配置
+    特性：
+      方便地创建可独立运行的Spring应用程序
+      直接内嵌Tomcat、Jetty或Undertow(JAR包)
+      简化了项目的构建配置
+      为Spring及第三方库提供自动配置
+      提供生产级特性
+      无需生成代码或进行XML配置
 
-Spring Boot的四大核心
-自动配置 - Auto Configuration
-起步依赖 - Starter Dependency
-命令行界面 - Spring Boot CLI
+    Spring Boot的四大核心
+      自动配置 - Auto Configuration
+      起步依赖 - Starter Dependency
+      命令行界面 - Spring Boot CLI
 Actuator
 
 2、自动配置
-基于添加的JAR依赖自动对Spring Boot应用程序进行配置 --> spring-boot-autoconfiguration
-开启自动配置：
-  @EnableAutoConfiguration (exclude=Class<?>[])
-  @SpringBootApplication
-自动配置的实现原理@EnableAutoConfiguration
-  AutoConfigurationImportSelector会加载
-  META-INF/spring.factories:org.springframework.boot.autoConfigure.EnableAutoConfiguration
+  基于添加的JAR依赖自动对Spring Boot应用程序进行配置 --> spring-boot-autoconfiguration
+  开启自动配置：
+    @EnableAutoConfiguration (exclude=Class<?>[])
+    @SpringBootApplication
+  自动配置的实现原理@EnableAutoConfiguration
+    AutoConfigurationImportSelector会加载
+    META-INF/spring.factories:org.springframework.boot.autoConfigure.EnableAutoConfiguration
   
   通过条件注解实现自动配置：
     @Conditional
@@ -227,8 +248,81 @@ Actuator
 Actuator Endpoint
 
 
+IoC
+  1、IoC主要实现策略
+    服务定位模式
+    依赖注入：构造器注入、参数注入、Setter注入、接口注入
+    依赖查询：beanContext
+    模板方法设计模式
+    策略模式
+    
+  2、IoC容器职责
+    依赖处理：依赖注入、依赖查找
+    生命周期管理：容器、托管的资源（Java Beans或其他资源）
+    配置：容器、外部化配置、托管的资源（Java Beans或其他资源）
 
-
+  3、IoC容器实现
+    主要实现：
+      Java SE：Java Beans、Java ServiceLoader SPI、JNDI（Java Naming and Directory Interface）
+      Java EE：EJB（Enterprise Java Beans）、Servlet
+      开源
+  
+  4、传统IoC容器实现
+    Java Beans作为IoC容器
+    特性：
+      依赖查找
+      生命周期管理
+      配置元信息
+      事件
+      自定义
+      资源管理
+      持久化
+    规范：
+      JavaBeans
+      BeanContext：管理Bean、以及Bean自己容器之间的相互依赖关系，包括层次性
+      
+    什么才是JavaBean
+      可以是一个简单的POJO
+      
+      POJO            Setter/Getter方法
+      JavaBeans       可写方法/可读方法      字段称为Peoperty
+    
+    BeanInfo beanInfo = Introspector.getBeanInfo(xx.class) 自省
+    ProperDescriptor ==> 名称、可写方法、可读方法
+    ProperDescriptor允许添加属性编辑器 - PropertyEditor
+    PropertyEditorSupport
+  
+  5、轻量级IoC容器实现
+    管理应用代码，可以控制代码的启停、生命周期
+    可以快速启动
+    不需要特殊的配置
+    轻量级的内存占用、最小化的API依赖
+    需要一些可以管控的渠道
+  
+  6、依赖查找 VS. 依赖注入
+    类型            依赖处理          实现便利性             代码侵入性           API依赖性          可读性
+    依赖查找        主动获取 pull      相对繁琐 查找+注入     侵入业务逻辑          依赖容器API         良好
+    依赖注入        被动提供 push      相对便利              低侵入性             不依赖容器API        一般
+    
+  7、构造器注入 VS. Setter注入
+    
+  
+Spring IoC容器
+  1、Spring IoC依赖查找
+  
+  2、Spring IoC依赖注入
+  
+  3、Spring IoC依赖来源
+  
+  4、Spring IoC配置元信息
+  
+  5、Spring IoC容器：BeanFactory和ApplicationContext谁才是Spring IoC容器
+  
+  6、Spring应用上下文：ApplicationContext除了IoC容器角色还提供哪些特性
+  
+  7、使用Spring IoC容器：BeanFactory VS. ApplicationContext
+  
+  8、Spring IoC容器生命周期：IoC容器起停过程中发生了什么
 
 
 Spring Bean基础
@@ -329,15 +423,44 @@ Spring Bean基础
       Java API: AbstractBeanDefinition#setDestroyMethodName(String)
       
 Spring IOC依赖查找
-
+  1、依赖查找的今世前生
+    单一类型依赖查找
+      JNDI - javax.naming.Context#lookup(javax.naming.Name)
+      JavaBeans - java.beans.beancontext.BeanContext
+      
+    集合类型依赖查找
+      java.beans.beancontext.BeanContext
+      
+    层次性依赖查找
+      java.beans.beancontext.BeanContext
+      
+    
+  2、单一类型依赖查找
+    java.beans.beancontext.BeanContext
+    
+    
+  3、集合类型依赖查找
+    java.beans.beancontext.BeanContext
+    
+  4、层次性依赖查找
+    java.beans.beancontext.BeanContext
+    
+  5、延迟依赖查找
+    
+  6、安全依赖查找
+    
+  7、内建可查找的依赖
+    
+  8、依赖查找中的经典异常
+    
+  
 
 Spring IOC依赖注入
-  依赖注入的模式和类型
+  
+  1、依赖注入的模式和类型
     手动模式：配置或者编程的方式，提前安排注入规则
-      XML资源配置元信息
-        
-      Java注解配置元信息
-        
+      XML资源配置元信息  
+      Java注解配置元信息        
       API配置元信息
       
     自动模式：实现方提供依赖自动关联的方式，按照内建的注入规则
@@ -352,7 +475,7 @@ Spring IOC依赖注入
       接口回调           class MyBean implements BeanFactoryAware{...}
     
     
-  自动绑定 AutoWiring
+  2、自动绑定 AutoWiring
     有效地减少一些属性或者参数的设定
     AutoWiring modes
        模式                   说明
@@ -362,29 +485,349 @@ Spring IOC依赖注入
       constructor     特殊byType类型，用于构造器参数
     限制不足：
   
-  Setter方法依赖注入
+  3、Setter方法依赖注入
+    实现方法
+      手动模式
+        XML资源配置元信息
+          DefaultListableBeanFactory
+          XmlBeanDefinitionReader
+        Java注解配置元信息
+          创建BeanFactory容器
+          注册Configuration Class 配置类
+          启动Spring应用上下文
+          关闭Spring应用上下文
+        API配置元信息
+          BeanDefinitionBuilder
+            addPropertyValue
+            addPropertyReference
+        
+      自动模式
+        byName
+        byType
+        
+      缺陷：执行顺序是不确定的
+  
+  4、构造器依赖注入 --> 执行顺序按照参数顺序
+    实现方法
+      手动模式
+        XML资源配置元信息
+          DefaultListableBeanFactory
+          XmlBeanDefinitionReader
+        Java注解配置元信息
+          创建BeanFactory容器
+          注册Configuration Class 配置类
+          启动Spring应用上下文
+          关闭Spring应用上下文
+        API配置元信息
+          BeanDefinitionBuilder
+            addConstructorArgReference
+            addConstructorArgValue
+     自动模式
+        constructor
+          特殊的byType方式，仅用于构造器的参数注入
+  
+  5、字段注入
+    实现方法
+      手动模式
+        Java注解配置元信息 
+          @Autowired -> 会忽略掉静态字段
+            创建BeanFactory容器
+            注册Configuration Class 配置类
+          @Resource
+          通过byType的方式进行依赖查找
+          @Inject JSR-330
+  
+  6、方法注入 方法参数的方式 byType
+    实现方式
+      手动模式
+        Java注解配置元信息
+          @Autowired
+          @Resource
+          @Inject
+          @Bean
+  
+  7、接口回调注入
+    Aware系列接口回调 -> 某某的意识接口
+      自动模式
+            内建接口                            说明
+        BeanFactoryAware                获取当前IoC容器-BeanFactory
+        ApplicationContextAware         获取当前Spring应用上下文-ApplicationContext对象
+        EnvironmentAware                获取Environment对象
+        ResourceLoaderAware             获取资源加载器对象 - ResourceLoader
+        BeanClassLoaderAware            获取加载当前 Bean Class的ClassLoader
+        BeanNameAware                   获取当前Bean的名称
+        MessageSourceAware              获取MessageSource对象，用于Spring国际化
+        ApplicationEventPublisherAware  获取ApplicationEventPublisherAware对象，用于Spring事件
+        EmbeddedValueResolverAware      获取StringValueResolver对象，用于占位符处理
+        
+  8、依赖注入类型选择
+    注入选型
+      低依赖、强制依赖注入：构造器注入
+      多依赖：Setter方法注入 缺点：注入的时机的先后顺序完全依赖用户操作
+      便利性：字段注入 @Autowired
+      声明类：方法注入 @Bean
+      
+  9、基础类型注入
+    基础类型
+      原生类型(Primitive): boolean、byte、char、short、int、float、long、double
+      标量类型(Scalar): Number、Character、Boolean、Enum、Locale、Charset、Currency、Properties、UUID
+      常规类型(General): Object、String、TimeZone、Calendar、Optional等
+      Spring类型: Resource、InputSource、Formatter等
+      
+    输进去的是一个字符类型，输出的却是xx类型-->类型转换
+  
+  10、集合类型注入
+    集合类型
+      数组类型Array：原生类型、标量类型、常规类型、Spring类型
+      集合类型Collection：
+        Collection：List、Set(SortedSet、NavigableSet、EnumSet)
+        Map：properties
+      
+ 
+  11、限定注入
+    使用注解@Qualifier限定
+      通过Bean名称限定
+      通过分组限定
+      
+    基于注解@Qualifier扩展限定
+      自定义注解 - 如Spring Cloud @LoadBalanced
+  
+  12、延迟依赖注入
+    使用API ObjectFactory延迟注入
+      单一类型
+      集合类型
     
-  
-  构造器依赖注入
-  
-  字段注入
-  
-  方法注入
-  
-  接口回调注入
-  
-  依赖注入类型选择
-  
-  基础类型注入
-  
-  集合类型注入
-  
-  限定注入
-  
-  延迟依赖注入
-  
-  依赖处理过程
+    使用API ObjectProvider延迟注入
+      单一类型
+      集合类型
+    
+  13、依赖处理过程
 
-  @Autowired注入原理
+  14、@Autowired注入原理
   
+  15、JSR-330 @Inject注入 
+  
+  16、@Resource、@EJB原理
+  
+  17、自定义依赖注入注解
+  
+
+Spring IoC依赖来源
+  依赖查找的来源
+    
+  依赖注入的来源
+    
+  Spring容器管理和游离对象
+    
+  Spring Bean Definition作为依赖来源
+    
+  单例对象作为依赖来源
+    
+  非Spring容器管理对象作为依赖来源
+    
+  外部化配置作为依赖来源
+    
+
+Spring Bean作用域
+  Spring Bean作用域
+    
+  “singleton” Bean作用域
+  “prototype” Bean作用域
+  
+  
+  “request” Bean作用域
+  “session” Bean作用域
+  “application” Bean作用域
+  自定义Bean作用域
+  
+  
+Spring Bean生命周期
+  1、Spring Bean元信息配置阶段
+    BeanDefinition配置
+      面向资源 XML配置; Properties资源配置; Grovvy
+      面向注解 @Configuration @Component @Bean
+      面向API BeanDefinitionBuilder BeanDefinition
+  2、Spring Bean元信息解析阶段
+  
+    面向资源BeanDefinition解析
+      BeanDefinitionReader
+      XML解析器 - BeanDefinitionParser
+      
+    面向注解BeanDefinition解析 --> 针对某个包或者某个类进行注册或者扫描  如ComponentScan 底层也会用到 AnnotatedBeanDefinitionReader
+      AnnotatedBeanDefinitionReader 
+    
+  3、Spring Bean注册阶段
+    BeanDefinition注册接口
+      BeanDefinitionRegistry
+      
+      
+  4、Spring BeanDefinition合并阶段
+  
+  5、Spring Bean Class加载阶段
+  
+  6、Spring Bean 实例化前阶段
+  
+  7、Spring Bean 实例化阶段
+  
+  8、Spring Bean 实例化后阶段
+  
+  9、Spring Bean 属性赋值前阶段
+  
+  10、Spring Bean Aware接口回调阶段
+  
+  11、Spring Bean 初始化前阶段
+  
+  12、Spring Bean 初始化阶段
+  
+  13、Spring Bean 初始化后阶段
+  
+  14、Spring Bean 初始化完成阶段
+  
+  15、Spring Bean 销毁前阶段
+  
+  16、Spring Bean 销毁阶段
+  
+  17、Spring Bean 垃圾收集
+  
+  
+  DefaultListableBeanFactory
+    默认实现了ListableBeanFactory和BeanDefinitionRegistry接口
+    
+    
+Spring配置元信息
+  1、
+  2、
+  3、
+  4、
+  5、
+  6、
+  7、
+  8、
+  9、
+  10、
+  11、
+  12、
+  13、
+  14、
+  15、
+  16、
+  
+Spring资源管理
+  1、
+  2、
+  3、
+  4、
+  5、
+  6、
+  7、
+  8、
+  9、
+  10、
+  
+Spring国际化
+  1、
+  2
+  3
+  4
+  5
+  6
+  7
+  8
+
+Spring校验
+  1
+  2
+  3
+  4
+  5
+  6
+  
+Spring数据绑定
+  1
+  2
+  3
+  4
+  5
+  6
+  7
+  8
+  
+Spring类型转换
+  1
+  2
+  3
+  4
+  5
+  6
+  7
+  8
+  9
+  10
+  11
+  12
+  13
+  14
+  
+Spring泛型处理
+  1
+  2
+  3
+  4
+  5
+  6
+  7
+  
+Spring事件
+  1
+  2
+  3
+  4
+  5
+  6
+  7
+  8
+  9
+  10
+  11
+  12
+  13
+  14
+  15
+  16
+  17
+  18
+  19
+  
+Spring注解
+  1、Spring注解驱动编程发展历程
+  2、Spring核心注解场景分类
+  3、Spring注解编程模型
+  4、Spring元注解
+  5、Spring模式注解
+  6、Spring组合注解
+  7、Spring注解属性别名
+  8、Spring注解属性覆盖
+  9、Spring @Enable模块驱动
+  10、Spring条件注解
+  11、
+  
+Spring Environment抽象
+  
+Spring应用上下文生命周期
+  1、Spring应用上下文启动准备阶段
+  2、BeanFactory创建阶段
+  3、BeanFactory准备阶段
+  4、BeanFactory后置处理阶段
+  5、BeanFactory注册BeanpostProcessor
+  6、初始化
+  7、初始化
+  8、
+  9
+  10
+  11
+  12
+  13
+  14
+  15
+  16
   
