@@ -699,7 +699,7 @@ Spring IOC依赖查找
     java.beans.beancontext.BeanContext
     (1) 根据Bean名称查找
       getBean(String)
-      Spring 2.5覆盖默认参数: getBean(String, Object...)
+      Spring 2.5覆盖默认参数: getBean(String, Object...) 
       
     (2) 根据Bean类型查找
       a. Bean实时查找
@@ -707,6 +707,8 @@ Spring IOC依赖查找
         Spring 4.1 覆盖默认参数: getBean(Class, Object...)
       
       b. Spring 5.1 Bean延迟查找
+        ObjectProvider<String> objectProvider = applicationContext.getBeanProvider(String.class);
+        
         getBeanProvider(Class)
         getBeanProvider(ResolvableType)
       
@@ -717,14 +719,107 @@ Spring IOC依赖查找
   3、集合类型依赖查找
     java.beans.beancontext.BeanContext
     
+    集合类型依赖查找接口-ListableBeanFactory
+    
+      (1). 根据Bean类型查找
+        
+        获取同类型的Bean名称列表 -> 判断bean是否存在，使用这个
+          getBeanNamesForType(Class)
+          Spring 4.2 getBeanNamesForType(ResolvableType)
+        
+        获取同类型的Bean实例列表 -> 可能会触发bean初始化
+          getBeansOfType(Class)以及重载方法
+      
+      (2). 通过注解类型查找
+        Spring 3.0 获取标注类型Bean名称列表
+          getBeanNamesForAnnotation(Class<? extends Annotation>)
+        Spring 3.0 获取标注类型Bean实例列表
+          getBeansWithAnnotation(Class<? extends Annotation>)
+        Spring 3.0 获取指定名称 + 标注类型Bean实例
+    
   4、层次性依赖查找
     java.beans.beancontext.BeanContext
     
+    层次性依赖查找接口 - HierarchicalBeanFactory
+      (1). 双亲BeanFactory: getParentBeanFactory()
+      (2). 层次性查找:
+        a. 根据Bean名称查找
+          基于containsLocalBean方法实现 -> local 本地的 当前BeanFactory(IoC容器)所包含的bean，不包含父类中的bean
+        
+          // 1. 获取 父HierarchicalBeanFactory <- ConfigurableBeanFactory <- ConfigurableListableBeanFactory子
+          ConfigurableListableBeanFactory beanFactory = applicationContext.getBeanFactory();
+          // 2. 设置 Parent BeanFactory
+          HierarchicalBeanFactory parentBeanFactory = createParentBeanFactory();
+          beanFactory.setParentBeanFactory(parentBeanFactory);
+        
+        b. 根据Bean类型查找实例列表
+          单一类型: BeanFactoryUtils#beanOfType
+          集合类型: BeanFactoryUtils#beansOfTypeIncludingAncestors
+        
+        c. 根据Java注解查找名称列表
+          BeanFactoryUtils#beanNamesForTypeIncludingAncestors
+    
   5、延迟依赖查找
+    Bean延迟依赖查找接口
+      org.springframework.beans.factory.ObjectFactory
+      
+      org.springframework.beans.factory.ObjectProvider
+        Spring 5 对 Java 8特性扩展
+          函数式接口
+            getIfAvailable(Supplier)
+            ifAvailable(Consumer)
+          Stream扩展 - stream()
     
   6、安全依赖查找
+    依赖查找安全性对比
+      依赖查找类型              代表实现                        是否安全
+      单一类型查找           BeanFactory#getBean                否
+                           ObjectFactory#getObject            否
+                           ObjectProvider#getIfAvailable      是
+      
+      集合类型查找           ListableBeanFactory#getBeansOfType 是
+                           ObjectProvider#stream              是
+                           
+      层次性依赖查找的安全性取决于其扩展的单一或集合类型的BeanFactory接口
+      
+    类型安全
+    非安全
     
   7、内建可查找的依赖
+    AbstractApplicationContext(所有应用上下文的基类)内建可查找的依赖
+    
+    Bean名称                             Bean实例                       使用场景
+    environment                       Environment对象                 外部化配置以及Profiles
+    systemProperties                 java.util.Properties对象         Java系统属性
+    systemEnvironment                java.util.Map对象                操作系统环境变量
+    messageSource                    MessageSource对象                国际化文案
+    lifecycleProcessor               LifecycleProcessor对象           Lifecycle Bean处理器
+    applicationEventMulticaster      ApplicationEventMulticaster对象  Spring事件广播器
+    
+    注解驱动Spring应用上下文内建可查找的依赖
+    Bean名称                                        Bean实例                                      使用场景
+    org.springframework.context.               ConfigurationClassPostProcessor对象           处理Spring配置类
+    annotation.internalConfiguration
+    AnnotationProcessor
+    
+    org.springframework.context.               AutowiredAnnotationBeanPostProcessor对象      处理@Autowired以及@Value注解
+    annotation.internalAutowired
+    AnnotationProcessor
+    
+    org.springframework.context.               CommonAnnotationBeanPostProcessor对象         (条件激活)处理JSR-250注解，如@PostConstruct等
+    annotation.internalCommon 
+    AnnotationProcessor
+    
+    org.springframework.context.               EventListenerMethodProcessor对象              处理@EventListener的Spring事件监听方法
+    event.internalEventListener
+    Processor
+    
+    org.springframework.context.               DefaultEventListenerFactory对象              @EventListener事件监听方法是适配为ApplicationListener
+    event.internalEventListenerFactory
+     
+    org.springframework.context.annotation     PersistenceAnnotationBeanPostProcessor对象   (条件激活)处理JPA注解场景
+    .internalPersistenceAnnotationProcessor
+    
     
   8、依赖查找中的经典异常
     
@@ -881,12 +976,12 @@ Spring IOC依赖注入
   14、@Autowired注入原理
     @Autowired注入过程
    
-      (1). 元信息解析
+      (1). 元信息解析  -->  谁要进行注入
          DependencyDescriptor 
       
-      (2). 依赖查找()
+      (2). 依赖查找  -->  查找出依赖的来源
       
-      (3). 依赖注入(字段、方法)
+      (3). 依赖注入(字段、方法)  -->  注入的对象
   
   15、JSR-330 @Inject注入 
   
@@ -925,36 +1020,103 @@ Spring Bean作用域
   
   
 Spring Bean生命周期
-  1、Spring Bean元信息配置阶段
+  1、Spring Bean元信息配置阶段 -> 通过配置资源或者配置资源对BeanDefinition进行配置
     BeanDefinition配置
-      面向资源 XML配置; Properties资源配置; Grovvy
-      面向注解 @Configuration @Component @Bean
-      面向API BeanDefinitionBuilder BeanDefinition
-  2、Spring Bean元信息解析阶段
+      (1) 面向资源 
+          a. XML配置; 
+          b. Properties资源配置;   
+            DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
+            // 实例化基于 Properties 资源 BeanDefinitionReader
+            PropertiesBeanDefinitionReader beanDefinitionReader = new PropertiesBeanDefinitionReader(beanFactory);
+          c. Grovvy
+      (2) 面向注解 
+          a. @Configuration 
+          b. @Component 
+          c. @Bean
+      (3) 面向API 
+          BeanDefinitionBuilder BeanDefinition
+      
+  2、Spring Bean元信息解析阶段 -> 对BeanDefinition进行解析
   
-    面向资源BeanDefinition解析
+    (1) 面向资源BeanDefinition解析
       BeanDefinitionReader
       XML解析器 - BeanDefinitionParser
       
-    面向注解BeanDefinition解析 --> 针对某个包或者某个类进行注册或者扫描  如ComponentScan 底层也会用到 AnnotatedBeanDefinitionReader
-      AnnotatedBeanDefinitionReader 
+    (2) 面向注解BeanDefinition解析 --> 针对某个包或者某个类进行注册或者扫描  如@ComponentScan 底层也会用到 AnnotatedBeanDefinitionReader
+      AnnotatedBeanDefinitionReader 包含解析和注册
+        
+        DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
+        // 基于 Java 注解的 AnnotatedBeanDefinitionReader 的实现
+        AnnotatedBeanDefinitionReader beanDefinitionReader = new AnnotatedBeanDefinitionReader(beanFactory);
+        // 注册当前类（非 @Component class） -> 可以传普通类
+        beanDefinitionReader.register(AnnotatedBeanDefinitionParsingDemo.class);
+        // 普通的 Class 作为 Component 注册到 Spring IoC 容器后，通常 Bean 名称为 annotatedBeanDefinitionParsingDemo
+        // Bean 名称生成来自于 BeanNameGenerator，注解实现 AnnotationBeanNameGenerator
     
-  3、Spring Bean注册阶段
+  3、Spring Bean注册阶段 -> BeanDefinition注册
     BeanDefinition注册接口
-      BeanDefinitionRegistry
+      BeanDefinitionRegistry接口 -> 
+        唯一实现DefaultListableBeanFactory
+          方法:registerBeanDefinition
+            this.beanDefinitionMap.put(beanName, beanDefinition);//用于注册 key - value(String - BeanDefinition)
+				    this.beanDefinitionNames.add(beanName);//用于维持顺序
       
-      
-  4、Spring BeanDefinition合并阶段
-  
+  4、Spring BeanDefinition合并阶段 -> 每个BeanDefinition对应一个class，class会经过ClassLoader加载
+    
+    rootBeanDefinition不存在parent定义，不需要合并
+    普通BeanDefinition，genericBeanDefinition，有父类型时需要合并
+    经过合并，genericBeanDefinition变成了rootBeanDefinition，并且覆盖parent相关配置
+    
+    ConfigurableBeanDefinition -> getMergedBeanDefinition
+    
+    BeanDefinition合并
+      父子BeanDefinition合并 -> 继承配置
+        当前BeanFactory查找
+        层次性BeanFactory查找
+        
+    没有继承的Bean定义最终会生成RootBeanDefinition，这种BeanDefinition不需要合并，禁止对setParentName方法设置值。
+    而存在parent的Bean定义则生成的是普通的GenericBeanDefinition，需要合并parent的BeanDefinition属性。
+    AbstractBeanFactory的getMergedBeanDefinition(String beanName)方法提供了BeanDefinition的合并逻辑的实现。
+    执行最终合并的是其中的mbd.overrideFrom(bd),将子bean和父bean的属性进行合并。
+    
+    在RootBeanDefinition的基础上，添加或者修改成子类的属性。
+    最终parentBeanDefinition和subBeanDefinition都一起成为了RootBeanDefinition，保存在mergedBeanDefinitions的缓存里。
+    
   5、Spring Bean Class加载阶段
-  
+    ClassLoader类加载
+      loadClass
+    
+    Java Security安全机制
+    
+    ConfigurableBeanFactory临时ClassLoader -> BeanClassLoader能被替换
+        当前BeanFactory的classLoader
+          ClassLoader beanClassLoader = getBeanClassLoader()
+        
+        ClassLoader dynamicLoader = beanClassLoader
+        dynamicLoader
+        
+        resolveBeabClass(ClassLoader classLoader) -> 通常是通过java的classLoader加载
+        String/Class? -> Class  
+        
+        
   6、Spring Bean 实例化前阶段
+    实例化 -> class 变为对象
+    非主流生命周期 - Bean实例化前阶段
+      InstantiationAwareBeanPostProcessor#postProcessBeforeInstantiation
+        在实例化之前进行，可能会返回一个代理，替换当前的bean
   
   7、Spring Bean 实例化阶段
-  
+     实例化方式
+      传统实例化方式
+        实例化策略 - InstantiationStrategy
+     
+     构造器依赖注入
+     
+     
   8、Spring Bean 实例化后阶段
   
   9、Spring Bean 属性赋值前阶段
+    配置元信息转换为属性的值
   
   10、Spring Bean Aware接口回调阶段
   
@@ -978,8 +1140,8 @@ Spring Bean生命周期
     
     
 Spring配置元信息
-  1、
-  2、
+  1、Spring配置元信息
+  2、Spring配置元信息 BeanDefinition
   3、
   4、
   5、
@@ -1102,7 +1264,7 @@ Spring应用上下文生命周期
   3、BeanFactory准备阶段
   4、BeanFactory后置处理阶段
   5、BeanFactory注册BeanpostProcessor
-  6、初始化
+  6、初始化内建Bean: MessageSource
   7、初始化
   8、
   9
