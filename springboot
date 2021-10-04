@@ -1131,11 +1131,53 @@ Spring Bean生命周期
 				
   9、Spring Bean 属性赋值前阶段 -> 配置元信息转换为属性的值
   
-	
-  10、Spring Bean Aware接口回调阶段
-	
+  	InstantiationAwareBeanPostProcessor方法:
+			postProcessBeforeInstantiation()在bean实例化前回调,返回实例则不对bean实例化,返回null则进行spring bean实例化(doCreateBean);
+			postProcessAfterInstantiation()在bean实例化后在填充bean属性之前回调,返回true则进行下一步的属性填充,返回false:则不进行属性填充
+			postProcessProperties在属性赋值前的回调在applyPropertyValues之前操作可以对属性添加或修改等操作最后在通过applyPropertyValues应用bean对应的wapper对象
+		
+		Bean 属性元信息
+			PropertyValues
+		Bean 属性赋值前回调
+			 Spring 1.2 - 5.0 InstantiationAwareBeanPostProcessor#postProcessPropertyValues
+			 Spring 5.1 InstantiationAwareBeanPostProcessor#postProcessProperties
+			 返回值：PropertyValues
+		
+		BeanFactory 赋值property values前进行的前置操作
+		
+		
+  10、Spring Bean Aware接口回调阶段 -> 属于bean的初始化的阶段 initializeBean
+		Spring Aware接口
+			执行顺序
+			BeanNameAware
+			BeanClassLoaderAware
+			BeanFactoryAware
+				都是分别通过setter的方式注入不同的对象  --> BeanFactory只有三个
+				
+			EnvironmentAware
+			EmbeddedValueResolverAware
+			ResourceLoaderAware
+			ApplicationEventPublisherAware
+			MessageSourceAware
+			ApplicationContextAware
+				都是属于ApplicationContext生命周期，ApplicationContextAwareProcessor	
+
   
   11、Spring Bean 初始化前阶段
+	  已完成
+		  Bean实例化
+		  Bean属性赋值
+		  Bean Aware 接口回调
+		
+		方法回调
+			BeanPostProcessor#postProcessBeforeInitialization
+			
+		通过XmlBeanDefinitionReader loadBeanDefinitions是将xml中bean对应的beanDefinition注册到beanFactory中,
+		底层通过BeanDefinitionReaderUtils#registerBeanDefinition()方法实现,这个时候只是注册beanDefinition
+		没有像ApplicationContext.refresh()中的registerBeanPostProcessors()将bean post Processor添加到beanFactory的beanPostProcessors list集合中操作,
+		所以xml读取的时候需要手动的addBeanPostProcessor;
+		如果通过ClassPathXmlApplicationContext创建ApplicationContext的方式xml中定义MyInstantiationAwareBeanPostProcessor是可以的,
+		因为ClassPathXmlApplicationContext创建时会执行refresh()操作会从beanFactory中找到MyInstantiationAwareBeanPostProcessor bean后添加到beanPostProcessors的list集合中
 	
   
   12、Spring Bean 初始化阶段
