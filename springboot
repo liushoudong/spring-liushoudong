@@ -954,30 +954,109 @@ Spring IOC依赖注入
         Map：properties
       
  
-  11、限定注入
-    使用注解@Qualifier限定
-      通过Bean名称限定
-      通过分组限定
+  11、限定注入 -> 实现bean逻辑分组注入
+    (1) 使用注解@Qualifier限定
+      a. 通过Bean名称限定
+				@Autowired
+    		@Qualifier("user") // 指定 Bean 名称或 ID
+    		private User namedUser;
+				
+      b. 通过分组限定
+				有Qualifier的
+				无Qualifier的
       
-    基于注解@Qualifier扩展限定
+    (2) 基于注解@Qualifier扩展限定
       自定义注解 - 如Spring Cloud @LoadBalanced
+			注解上标注了@Qualifier -> 扩展机制
   
   12、延迟依赖注入
-    使用API ObjectFactory延迟注入
-      单一类型
-      集合类型
+		@Autowired
+    @Qualifier("user")
+    private User user; // 实时注入
+
+    (1) 使用API ObjectFactory延迟注入
+      a. 单一类型
+      b. 集合类型
+			@Autowired
+   		private ObjectFactory<Set<User>> usersObjectFactory;
+			-->
+			demo.usersObjectFactory.getObject()
     
-    使用API ObjectProvider延迟注入
-      单一类型
-      集合类型
+    (2) 使用API ObjectProvider延迟注入
+      a. 单一类型
+      b. 集合类型
+			@Autowired
+    	private ObjectProvider<User> userObjectProvider; // 延迟注入
+			-->
+			demo.userObjectProvider.getObject()// 继承 ObjectFactory
+			demo.userObjectProvider.forEach(System.out::println);
     
   13、依赖处理过程
+		基础知识
+			入口 - DefaultListableBeanFactory#resolveDependency -> 有两个重载方法
+			依赖描述符 - DependencyDescriptor 
+			自动绑定候选对象处理器 - AutowireCandidateResolver -> 解决和处理依赖的基本的入口
+			
+			resolveDependency
+			实现接口 AutowireCapableBeanFactory#resolveDependency
+			->
+			a. @Nullable
+			Object resolveDependency(DependencyDescriptor descriptor, @Nullable String requestingBeanName) throws BeansException;
+			requestingBeanName -> 当前需要注入的bean name
+			
+			b. @Nullable
+			Object resolveDependency(DependencyDescriptor descriptor, @Nullable String requestingBeanName,
+			@Nullable Set<String> autowiredBeanNames, @Nullable TypeConverter typeConverter) throws BeansException;
+			
+			DependencyDescriptor
+				private final Class<?> declaringClass;
+				
+				@Nullable
+				private String methodName;
 
+				@Nullable
+				private Class<?>[] parameterTypes;
+
+				private int parameterIndex;
+
+				@Nullable
+				private String fieldName;
+
+				private final boolean required;  //@Autowired(required = true)
+
+				private final boolean eager; // lazy
+
+				private int nestingLevel = 1;
+
+				@Nullable
+				private Class<?> containingClass;
+
+				@Nullable
+				private transient volatile ResolvableType resolvableType;
+
+				@Nullable
+				private transient volatile TypeDescriptor typeDescriptor;
+			
+			
+			DefaultListableBeanFactory#resolveDependency
+				AutowireCandidateResolver
+			
+			过程
+			DefaultListableBeanFactory#resolveDependency 判断是否懒加载，懒加载直接返回CGLIB代理对象；
+			doResolveDependency 开始进行依赖注入；
+			resolveMultipleBeans 判断注入的对象是否是集合类型（Stream,Collection,Array,Map） ，是的话直接return ；
+			findAutowireCandidates 根据类型查找所有匹配到的bean，返回一个Map对象；
+			determineAutowireCandidate 选取唯一bean名称，如果有多个bean，即返回@Primary修饰的；
+			通过BeanFactory#getBean返回结果
+			
   14、@Autowired注入原理
-    @Autowired注入过程
+    
+		@Autowired注入过程
    
       (1). 元信息解析  -->  谁要进行注入
          DependencyDescriptor 
+				 inject
+				 postProcessProperties 调用inject
       
       (2). 依赖查找  -->  查找出依赖的来源
       
@@ -1182,14 +1261,53 @@ Spring Bean生命周期
   
   12、Spring Bean 初始化阶段
 	
+	  实例化是 Class 到 Object 的过程
+		初始化是 Object 状态准备的过程
+		
+		Bean初始化(Initialization)
+		
+			(1) @PostConstruct标注方法 -> 依赖于注解驱动 
+																	BeanFactory上下文中没有
+																	可以通过添加CommonAnnotationBeanPostProcessor解决
+																	beanFactory.addBeanPostProcessor(new CommonAnnotationBeanPostProcessor())
+			
+				依赖于传统的ApplicationContext
+				在初始化前阶段就已经完成了@PostConstruct标注方法的回调
+			
+			(2) 实现InitializingBean接口的afterPropertiesSet()方法
+			
+			(3) 自定义初始化方法
+				init-method = "xx" xml中配置 --> 反射调用
   
-  13、Spring Bean 初始化后阶段
-	
+  13、Spring Bean 初始化后阶段: BeanPostProcessor
+		方法回调
+			BeanPostProcessor#postProcessAfterInitialzation
+			
+		在填充bean属性完成之后initializeBean()中有四个过程
+			aware的接口回调(不包括ApplicationContext相关)
+			postProcessBeforeInitialization()包括两部分关于ApplicationContextAwareProcessor的aware接口回调和自定义bean post processor的postProcessBeforeInitialization回调
+			invokeInitMethods() bean初始化的回调比如实现InitializingBean接口
+			applyBeanPostProcessorsAfterInitialization() bean初始化之后的回调
   
   14、Spring Bean 初始化完成阶段
-	
+		方法回调
+			SmartInitializingSingleton#afterSingletonsInstantiated -> 通常在Spring ApplicationContext场景使用，确保bean已经完全初始化
+				preInstantiateSingletons方法需要显式回调
+					beanFactory.preInstantiateSingletons()
+					
+			preInstantiateSingletons 将已注册的beanDefinition初始化成Spring Bean
+					
+		ApplicationContext在refresh的操作里等beanFactory的一系列操作，messageSource，注册listener等操作都完毕之后通过finishBeanFactoryInitialization
+		开始实例化所有非懒加载的单例bean，具体是在finishBeanFactoryInitialization调用beanFactory#preInstantiateSingletons进行的，preInstantiateSingletons
+		里面就是通过beanDefinitionNames循环调用getBean来实例化bean的，这里有个细节，beanDefinitionNames是拷贝到一个副本中，循环副本，使得还能注册新的beanDefinition.
+		getBean的操作得到一个完整的状态的bean。 然后所有的非延迟单例都加载完毕之后，再重新循环副本，判断bean是否是SmartInitializingSingleton，
+		如果是的话执行SmartInitializingSingleton#afterSingletonsInstantiated。
+		这保证执行afterSingletonsInstantiated的时候的bean一定是完整的。
   
   15、Spring Bean 销毁前阶段
+		方法回调
+			DestructionAwareBeanPostProcessor#postProcessBeforeDestruction
+				a
 	
   
   16、Spring Bean 销毁阶段
@@ -1205,18 +1323,36 @@ Spring Bean生命周期
     
 Spring配置元信息
   1、Spring配置元信息
+		Spring Bean配置元信息 BeanDefinition
+		Spring Bean属性元信息 PropertyValues
+		Spring容器配置元信息
+		Spring外部化配置元信息 PropertySource
+		Spring Profile元信息 @Profile
+	
   2、Spring Bean配置元信息 BeanDefinition
+	
   3、Spring Bean属性元信息 PropertyValues
+	
   4、Spring容器配置元信息
+	
   5、基于XML资源装载Spring Bean配置元信息
+	
   6、基于Java 注解装载Spring Bean配置元信息
+	
   7、Spring Bean配置元信息底层实现 XML资源
+	
   8、Spring Bean配置元信息底层实现 Java注解
+	
   9、基于XML资源装载Spring IoC容器配置元信息
+	
   10、基于Java 注解装载Spring IoC容器配置元信息
+	
   11、基于Extensible XML authoring扩展Spring XML元素
+	
   12、Extensible XML authoring扩展原理
+	
   13、基于Properties资源装载外部化配置
+	
   14、基于YAML资源装载外部化配置
 
   
@@ -1395,34 +1531,123 @@ Spring注解 Annotations
   
 Spring Environment抽象
   1、理解Spring Environment抽象
+	
   2、Spring Environment接口使用场景
+	
   3、Environment占位符处理
+	
   4、理解条件配置Spring Profiles
+	
   5、Spring 4重构@Profile
+	
   6、依赖注入Environment
+	
   7、依赖查找Environment
+	
   8、依赖注入@Value
+	
   9、Spring类型转换在@Value中的运用
+	
   10、Spring配置属性源PropertySource
+	
   11、Spring内建的配置属性源
+	
   12、基于注解扩展Spring配置属性源
+	
   13、基于API扩展Spring外部化配置属性源
+	
   14、Spring4.1测试配置属性源 @TestPropertySource
   
 Spring应用上下文生命周期
   1、Spring应用上下文启动准备阶段
-  2、BeanFactory创建阶段
+		
+		AbstractApplicationContext#prepareRefresh()方法 
+			启动时间 - startupDate
+			状态标识 - closed(false) active(true)
+			初始化 - PropertySources - initPropertySources()
+			检验Environment中必须属性
+			初始化事件监听器集合
+			初始化早期Spring事件集合
+	
+  2、BeanFactory创建阶段 -> BeanNameAware ClassLoaderAware是由BeanFactory实现的
+		BeanFactory是底层的IoC容器，主要负责bean的生命周期的管理以及bean的管理
+		ApplicationContext
+		
+		AbstractApplicationContext#obtainFreshBeanFactory()方法
+			a. 刷新Spring应用上下文底层BeanFactory - refreshBeanFactory()
+				销毁或关闭BeanFactory，如果已存在的话
+				创建BeanFactory - createBeanFactory()
+				设置BeanFactory Id
+				设置“是否允许BeanDefinition重复定义” - customizeBeanFactory(DefaultListableBeanFactory)
+				设置“是否允许循环引用(依赖)” - customizeBeanFactory(DefaultListableBeanFactory)
+				加载BeanDefinition - loadBeanDefinitions(DefaultListableBeanFactory)方法
+				关联新建BeanFactory到Spring应用上下文
+				
+			b. 返回Spring应用上下文底层BeanFactory - getBeanFactory()
+
+	
   3、BeanFactory准备阶段
+		AbstractApplicationContext#prepareBeanFactory(ConfigurableListableBeanFactory)方法
+			a. 关联ClassLoader -> xml; 
+			b. 设置Bean表达式处理器
+			c. 添加PropertyEditorRegistar实现 - ResourceEditorRegistar
+			d. 添加Aware回调接口BeanPostProcessor实现 ApplicationContextAwareProcessor
+			e. 忽略Aware回调接口作为依赖注入接口
+			f. 注册ResolvableDependency对象 - BeanFactory、ResourceLoader、ApplicationEventPublisher以及ApplicationContext
+			g. 注册ApplicationListenerDetector对象 
+			h. 注册LoadTimeWeaverAwareProcessor对象
+			i. 注册单例对象 Environment、Java System Properties以及OS环境变量
+			
+			依赖注入和依赖查找的一个重要区别：依赖注入可以注册一个可处理的resolvableDependency对象，可以处理一个外部对象。
+			依赖注入外部对象有两个: 
+				registerSingleton(String beanName, Object singletonObject)
+				resolvableDependency 通常是单一类型唯一的
+	
   4、BeanFactory后置处理阶段
+		
+		postProcessBeanFactory(beanFactory)继承 allows post-processing of the bean factory in context subclasses
+		
+		invokeBeanFactoryPostProcessors(beanFactory)组合 invoke factory processors registered as beans in the context
+			AbstractApplicationContext#invokeBeanFactoryPostProcessors(ConfigurableListableBeanFactory) 方法，主要是执行 BeanFactoryPostProcessor 和 BeanDefinitionRegistryPostProcessor 的处理，会做以下事情：
+				如果当前 Spring 应用上下文是 BeanDefinitionRegistry 类型，则执行当前 Spring 应用上下文中所有 BeanDefinitionRegistryPostProcessor、BeanFactoryPostProcessor 的处理，以及底层 BeanFactory 容器中 BeanDefinitionRegistryPostProcessor 的处理，处理顺序如下：
+   				当前 Spring 应用上下文中所有 BeanDefinitionRegistryPostProcessor#postProcessBeanDefinitionRegistry
+   				底层 BeanFactory 容器中所有 BeanDefinitionRegistryPostProcessor#postProcessBeanDefinitionRegistry（优先级：PriorityOrdered > Ordered > 无）
+   				当前 Spring 应用上下文和底层 BeanFactory 容器中所有 BeanDefinitionRegistryPostProcessor#postProcessBeanFactory
+   				当前 Spring 应用上下文中所有 BeanFactoryPostProcessor#postProcessBeanFactory
+				否则，执行当前 Spring 应用上下文中所有 BeanFactoryPostProcessor#postProcessBeanFactory
+				执行底层 BeanFactory 容器中所有 BeanFactoryPostProcessor#postProcessBeanFactory，上面已经处理过的会跳过，执行顺序和上面一样：PriorityOrdered > Ordered > 无
+			
+		(1) AbstractApplicationContext#postProcessBeanFactory(ConfidurableListableBeanFactory)方法
+			由子类覆盖该方法
+		
+			AnnotatedBeanDefinitionReader -> 
+			ClassPathBeanDefinitionScanner -> @ComponentScan
+			
+		
+		(2) AbstractApplicationContext#invokeBeanFactoryPostProcessors(onfidurableListableBeanFactory)方法
+			a. 调用BeanFactoryPostProcessor或BeanDefinition后置处理方法
+			b. 注册LoadTimeWeaverAwareProcessor对象
+		
   5、BeanFactory注册BeanpostProcessor
+	
   6、初始化内建Bean: MessageSource
+	
   7、初始化内建Bean: Spring事件广播器
+	
   8、Spring应用上下文刷新阶段
+	
   9、Spring事件监听器注册阶段
+	
   10、BeanFactory初始化完成阶段
+		BeanFactory是随时可用的 ApplicationContext不
+	
   11、Spring应用上下文刷新完成阶段
+	
   12、Spring应用上下文启动阶段
+	
   13、Spring应用上下文停止阶段
+	
   14、Spring应用上下文关闭阶段
+	
 
   
