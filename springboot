@@ -1538,10 +1538,28 @@ Spring注解 Annotations
   
 Spring Environment抽象
   1、理解Spring Environment抽象
+	统一的Spring配置属性管理
 	
+	条件化Spring Bean装配管理
+	  通过Environment Profiles信息，帮助Spring容器提供条件化地装配Bean
+	  
   2、Spring Environment接口使用场景
+	(1)用于属性占位符处理
+	
+	(2)用于转换Spring配置属性类型
+	
+	(3)用于存储Spring配置属性源(PropertySource)
+	
+	(4)用于Profiles状态的维护
 	
   3、Environment占位符处理
+	Spring 3.1前占位符处理
+	  组件: org.springframework.beans.factory.config.PropertyPlaceholderConfigurer -> 关联资源文件如Property文件，进行占位符的替换 SpringValueResolver
+	  接口: org.springframework.util.StringValueResolver
+	  
+	Spring 3.1+ 占位符处理
+	  组件: org.springframework.context.support.PropertySourcesPlaceholderConfigurer
+	  接口: org.springframework.beans.factory.config.EmbeddedValueResolver
 	
   4、理解条件配置Spring Profiles
 	
