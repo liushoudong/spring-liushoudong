@@ -1427,16 +1427,34 @@ Spring泛型处理
 			
 		
 		(2)泛型使用场景
-			a. 编译时强类型检查
+			a. 编译时强类型检查 编译时候确定
 			
 			b. 避免类型强转
 			
 			c. 实现通用算法
 		
 		(3)泛型类型擦写
-			泛型被引入到Java语言中，以便在编译时提供更严格的类型检查并支持泛型编程。类型擦除确保不会为参数化类型创建新类；因此，泛型不会产生运行时开销。为了实现泛型，编译器将类型擦除应用于
+			泛型被引入到Java语言中，以便在编译时提供更严格的类型检查并支持泛型编程。类型擦除确保不会为参数化类型创建新类；因此，泛型不会产生运行时开销。为了实现泛型，编译器将类型擦除应用于：
+				将泛型类型中的所有类型参数替换为其边界，如果类型参数是无边界的，则将其替换为“Object”。因此，生成的字节码只包含普通类、接口和方法
+				必要时插入类型转换以保持类型安全
+				生成桥方法以保留扩展泛型类型中的多态性
 			
   2、Java 5 类型接口
+		派生类或接口                                      说明
+		java.lang.Class                            Java类API，如java.lang.String
+		java.lang.reflect.GenericArrayType         泛型数组类型
+		java.lang.reflect.ParameterizedType        泛型参数类型
+		java.lang.reflect.TypeVariable             泛型类型变量，如Collection<E>中的E
+		java.lang.reflect.WildcardType             泛型通配类型
+		
+		Java泛型反射API
+		类型                                     API
+		泛型信息（Generics Info）         java.lang.Class#getGenericInfo()
+		泛型参数（Parameters）            java.lang.reflect.ParameterizedType
+		泛型父类（Super Classes）         java.lang.Class#getGenericSuperClass()
+		泛型接口（Interfaces）            java.lang.Class#getGenericInterfaces()
+		泛型声明（Generics Declaration）  java.lang.reflect.GenericDeclaration
+	
   3、Spring泛型类型辅助类
   4、Spring泛型集合类型辅助类
   5、Spring方法参数封装 - MethodParameter
