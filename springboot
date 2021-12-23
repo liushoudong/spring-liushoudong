@@ -1070,11 +1070,35 @@ Spring IOC依赖注入
   
 
 Spring IoC依赖来源
-  依赖查找的来源
+  1、依赖查找的来源
+		来源                                 配置元数据
+		Spring BeanDefinition       <bean id="user" class="org.geekbang...User">
+		                            @Bean public User user(){...}
+		                            BeanDefinitionBuilder
+		单例对象                     API实现
+		
+		
+		Spring内建BeanDefinition 
+		Bean名称                                                                                      Bean实例                              使用场景
+		org.springframework.context.annotation.internalConfigurationAnnotationProcessor  ConfigurationClassPostProcessor对象            处理Spring配置类
+		org.springframework.context.annotation.internalAutowiredAnnotationProcessor      AutowiredAnnotationBeanPostProcessor对象       处理@Autowired以及@Value注解
+		org.springframework.context.annotation.internalCommonAnnotationProcessor         CommonAnnotationBeanPostProcessor对象         （条件激活）处理JSR-250注解，如@PostConstruct
+		org.springframework.context.event.internalEventListenerProcessor                 EventListenerMethodProcessor对象               处理标注@EventListener的Spring事件监听方法
+		
+		Spring内建单例对象
+		Bean名称                              Bean实例                                 使用场景
+		environment                        Environment对象                      外部化配置以及Profiles
+		systemProperties                   java.util.Properties对象             Java系统属性
+		systemEnvironment                  java.util.Map对象                    操作系统环境变量
+		messageSource                      MessageSource对象                    国际化文案
+		lifecycleProcessor                 LifecycleProcessor对象               Lifecycle Bean处理器
+		applicationEventMulticaster        ApplicationEventMulticaster对象      Spring事件广播器
+		
+		AnnotationConfigUtils类->会注入一些内建类
     
-  依赖注入的来源
+  2、依赖注入的来源
     
-  Spring容器管理和游离对象
+  3、Spring容器管理和游离对象
     
   Spring Bean Definition作为依赖来源
     
